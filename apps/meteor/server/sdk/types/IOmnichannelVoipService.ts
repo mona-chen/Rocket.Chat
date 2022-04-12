@@ -20,7 +20,7 @@ export interface IOmnichannelVoipService {
 		options: FindOneOptions<IVoipRoom>,
 	): Promise<IRoomCreationResponse>;
 	findRoom(token: string, rid: string): Promise<IVoipRoom | null>;
-	closeRoom(closer: ILivechatVisitor | ILivechatAgent, room: IVoipRoom, user: IUser, comment?: string, tags?: string[]): Promise<boolean>;
+	closeRoom(closer: ILivechatVisitor | ILivechatAgent, room: IVoipRoom, user: IUser, options: { comment?: string, tags?: string[] }): Promise<boolean>;
 	handleEvent(
 		event: VoipClientEvents,
 		room: IRoom,

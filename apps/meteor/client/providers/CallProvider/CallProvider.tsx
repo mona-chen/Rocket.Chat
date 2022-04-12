@@ -295,8 +295,8 @@ export const CallProvider: FC = ({ children }) => {
 				}
 				return '';
 			},
-			closeRoom: async ({ comment, tags }: { comment: string; tags: string[] }): Promise<void> => {
-				roomInfo && (await voipCloseRoomEndpoint({ rid: roomInfo.rid, token: roomInfo.v.token || '', comment: comment || '', tags }));
+			closeRoom: async ({ comment, tags }: { comment?: string; tags?: string[] }): Promise<void> => {
+				roomInfo && (await voipCloseRoomEndpoint({ rid: roomInfo.rid, token: roomInfo.v.token || '',  options: { comment, tags } }));
 				homeRoute.push({});
 				const queueAggregator = voipClient.getAggregator();
 				if (queueAggregator) {
