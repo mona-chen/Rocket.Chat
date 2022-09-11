@@ -1,7 +1,5 @@
 import { useClipboard, UseClipboardReturn, useMutableCallback } from '@rocket.chat/fuselage-hooks';
-
-import { useToastMessageDispatch } from '../contexts/ToastMessagesContext';
-import { useTranslation } from '../contexts/TranslationContext';
+import { useToastMessageDispatch, useTranslation } from '@rocket.chat/ui-contexts';
 
 export default function useClipboardWithToast(text: string): UseClipboardReturn {
 	const t = useTranslation();
@@ -9,6 +7,6 @@ export default function useClipboardWithToast(text: string): UseClipboardReturn 
 
 	return useClipboard(text, {
 		onCopySuccess: useMutableCallback(() => dispatchToastMessage({ type: 'success', message: t('Copied') })),
-		onCopyError: useMutableCallback((e) => dispatchToastMessage({ type: 'error', message: String(e) })),
+		onCopyError: useMutableCallback((e) => dispatchToastMessage({ type: 'error', message: e })),
 	});
 }

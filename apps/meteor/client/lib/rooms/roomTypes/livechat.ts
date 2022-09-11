@@ -1,3 +1,4 @@
+import type { IOmnichannelRoom, AtLeast, ValueOf } from '@rocket.chat/core-typings';
 import { Session } from 'meteor/session';
 
 import { hasPermission } from '../../../../app/authorization/client';
@@ -5,10 +6,8 @@ import { LivechatInquiry } from '../../../../app/livechat/client/collections/Liv
 import { ChatRoom, ChatSubscription } from '../../../../app/models/client';
 import { settings } from '../../../../app/settings/client';
 import { getAvatarURL } from '../../../../app/utils/lib/getAvatarURL';
-import type { IOmnichannelRoom } from '../../../../definition/IRoom';
 import type { IRoomTypeClientDirectives } from '../../../../definition/IRoomTypeConfig';
 import { RoomSettingsEnum, RoomMemberActions, UiTextContext } from '../../../../definition/IRoomTypeConfig';
-import type { AtLeast, ValueOf } from '../../../../definition/utils';
 import { getLivechatRoomType } from '../../../../lib/rooms/roomTypes/livechat';
 import { roomCoordinator } from '../roomCoordinator';
 
@@ -38,7 +37,15 @@ roomCoordinator.add(LivechatRoomType, {
 			return false;
 		}
 
-		instance.tabBar.openUserInfo();
+		/* @TODO Due to route information only updating on `Tracker.afterFlush`,
+			we found out that calling the tabBar.openUserInfo() method at this point will cause a route change
+			to the previous route instead of the current one, preventing livechat rooms from being opened.
+
+			As a provisory solution, we're delaying the opening of the contextual bar,
+			which then ensures that the route info is up to date. Although this solution works,
+			we need to find a more reliable way of ensuring consistent route changes with up-to-date information.
+		*/
+		setTimeout(() => instance.tabBar.openUserInfo(), 0);
 		return true;
 	},
 
@@ -64,7 +71,7 @@ roomCoordinator.add(LivechatRoomType, {
 	getUserStatus(rid) {
 		const room = Session.get(`roomData${rid}`);
 		if (room) {
-			return room.v && room.v.status;
+			return room.v?.status;
 		}
 		const inquiry = LivechatInquiry.findOne({ rid });
 		return inquiry?.v?.status;

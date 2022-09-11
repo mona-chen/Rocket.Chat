@@ -13,7 +13,6 @@ coverage
 out/
 build
 dist
-
 # misc
 .DS_Store
 *.pem
@@ -41,3 +40,6 @@ yarn-error.log*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+.nvmrc
+.idea/

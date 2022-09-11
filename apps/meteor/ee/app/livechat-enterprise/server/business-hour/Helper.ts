@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 import moment from 'moment-timezone';
-
-import { LivechatBusinessHours, LivechatDepartment, LivechatDepartmentAgents, Users } from '../../../../../app/models/server/raw';
-import { ILivechatBusinessHour, LivechatBusinessHourTypes } from '../../../../../definition/ILivechatBusinessHour';
+import type { ILivechatBusinessHour } from '@rocket.chat/core-typings';
+import { LivechatBusinessHourTypes } from '@rocket.chat/core-typings';
+import { LivechatBusinessHours, LivechatDepartment, LivechatDepartmentAgents, Users } from '@rocket.chat/models';
 
 const getAllAgentIdsWithoutDepartment = async (): Promise<string[]> => {
 	const agentIdsWithDepartment = (

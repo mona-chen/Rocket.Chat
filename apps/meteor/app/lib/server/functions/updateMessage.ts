@@ -1,17 +1,12 @@
+import type { IMessage, IMessageEdited, IUser } from '@rocket.chat/core-typings';
 import { Meteor } from 'meteor/meteor';
-import { parser } from '@rocket.chat/message-parser';
+import type { UpdateFilter } from 'mongodb';
 
 import { Messages, Rooms } from '../../../models/server';
 import { settings } from '../../../settings/server';
 import { callbacks } from '../../../../lib/callbacks';
-import { SystemLogger } from '../../../../server/lib/logger/system';
 import { Apps } from '../../../apps/server';
 import { parseUrlsInMessage } from './parseUrlsInMessage';
-import { isE2EEMessage } from '../../../../lib/isE2EEMessage';
-import { IMessage, IMessageEdited } from '../../../../definition/IMessage';
-import { IUser } from '../../../../definition/IUser';
-
-const { DISABLE_MESSAGE_PARSER = 'false' } = process.env;
 
 export const updateMessage = function (message: IMessage, user: IUser, originalMessage?: IMessage): void {
 	if (!originalMessage) {
@@ -51,17 +46,15 @@ export const updateMessage = function (message: IMessage, user: IUser, originalM
 
 	message = callbacks.run('beforeSaveMessage', message);
 
-	try {
-		if (message.msg && DISABLE_MESSAGE_PARSER !== 'true' && !isE2EEMessage(message)) {
-			message.md = parser(message.msg);
-		}
-	} catch (e: unknown) {
-		SystemLogger.error(String(e)); // errors logged while the parser is at experimental stage
+	const { _id, ...editedMessage } = message;
+	const unsetData: Partial<UpdateFilter<IMessage>> = {};
+
+	if (!editedMessage.msg) {
+		unsetData.md = 1;
+		delete editedMessage.md;
 	}
 
-	const { _id, ...editedMessage } = message;
-
-	Messages.update({ _id }, { $set: editedMessage });
+	Messages.update({ _id }, { $set: editedMessage, $unset: unsetData });
 
 	const room = Rooms.findOneById(message.rid);
 

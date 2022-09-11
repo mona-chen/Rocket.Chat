@@ -1,6 +1,6 @@
-import type { IRole, IUser } from '../../../definition/IUser';
-import type { IRoom } from '../../../definition/IRoom';
-import { Users, Roles } from '../../../app/models/server/raw';
+import type { IRole, IUser, IRoom } from '@rocket.chat/core-typings';
+import { Users, Roles } from '@rocket.chat/models';
+
 import { validateRoleList } from './validateRoleList';
 import { MeteorError } from '../../sdk/errors';
 

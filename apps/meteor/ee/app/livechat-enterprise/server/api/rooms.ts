@@ -1,24 +1,20 @@
 import { Meteor } from 'meteor/meteor';
 import { TAPi18n } from 'meteor/rocketchat:tap-i18n';
+import type { IOmnichannelRoom } from '@rocket.chat/core-typings';
 
 import { API } from '../../../../../app/api/server';
 import { hasPermission } from '../../../../../app/authorization/server';
 import { Subscriptions, LivechatRooms } from '../../../../../app/models/server';
 import { LivechatEnterprise } from '../lib/LivechatEnterprise';
-import { IOmnichannelRoom } from '../../../../../definition/IRoom';
 
 API.v1.addRoute(
 	'livechat/room.onHold',
-	{ authRequired: true },
+	{ authRequired: true, permissionsRequired: ['on-hold-livechat-room'] },
 	{
 		post() {
 			const { roomId } = this.bodyParams;
 			if (!roomId || roomId.trim() === '') {
 				return API.v1.failure('Invalid room Id');
-			}
-
-			if (!this.userId || !hasPermission(this.userId, 'on-hold-livechat-room')) {
-				return API.v1.failure('Not authorized');
 			}
 
 			const room: IOmnichannelRoom = LivechatRooms.findOneById(roomId);

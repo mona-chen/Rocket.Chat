@@ -1,19 +1,15 @@
+import type { IMessage, IRoom, IUser } from '@rocket.chat/core-typings';
 import { Box, Icon, TextInput, Select, Margins, Callout, Throbber } from '@rocket.chat/fuselage';
 import { useResizeObserver, useMutableCallback, useAutoFocus } from '@rocket.chat/fuselage-hooks';
+import { useRoute, useCurrentRoute, useQueryStringParameter, useSetting, useTranslation } from '@rocket.chat/ui-contexts';
 import React, { FC, useMemo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 
-import { IMessage } from '../../../../../definition/IMessage';
-import { IRoom } from '../../../../../definition/IRoom';
-import { IUser } from '../../../../../definition/IUser';
 import ScrollableContentWrapper from '../../../../components/ScrollableContentWrapper';
 import VerticalBar from '../../../../components/VerticalBar';
-import { useRoute, useCurrentRoute, useQueryStringParameter } from '../../../../contexts/RouterContext';
-import { useSetting } from '../../../../contexts/SettingsContext';
-import { useTranslation } from '../../../../contexts/TranslationContext';
 import { useTabContext } from '../../providers/ToolboxProvider';
 import ThreadComponent from '../../threads/ThreadComponent';
-import Row from './Row';
+import ThreadRow from './ThreadRow';
 import { withData } from './withData';
 
 export type ThreadListProps = {
@@ -158,7 +154,7 @@ export const ThreadList: FC<ThreadListProps> = function ThreadList({
 							components={{ Scroller: ScrollableContentWrapper as any }}
 							itemContent={(_index, data: IMessage): FC<IMessage> =>
 								(
-									<Row
+									<ThreadRow
 										thread={data}
 										showRealNames={showRealNames}
 										unread={unread}

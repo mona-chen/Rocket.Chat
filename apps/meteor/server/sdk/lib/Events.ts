@@ -1,28 +1,31 @@
-import { IUIKitInteraction } from '@rocket.chat/apps-engine/definition/uikit';
+import type { IUIKitInteraction } from '@rocket.chat/apps-engine/definition/uikit';
+import type {
+	IEmailInbox,
+	IEmoji,
+	IInquiry,
+	IInstanceStatus,
+	IIntegration,
+	IIntegrationHistory,
+	ILivechatDepartmentAgents,
+	ILoginServiceConfiguration,
+	IMessage,
+	INotificationDesktop,
+	IPbxEvent,
+	IRole,
+	IRoom,
+	ISetting,
+	ISocketConnection,
+	ISubscription,
+	IUser,
+	IUserSession,
+	IUserStatus,
+	IInvite,
+	IWebdavAccount,
+	ICustomSound,
+	VoipEventDataSignature,
+} from '@rocket.chat/core-typings';
 
-import { IEmailInbox } from '../../../definition/IEmailInbox';
-import { IEmoji } from '../../../definition/IEmoji';
-import { IInquiry } from '../../../definition/IInquiry';
-import { IInstanceStatus } from '../../../definition/IInstanceStatus';
-import { IIntegration } from '../../../definition/IIntegration';
-import { IIntegrationHistory } from '../../../definition/IIntegrationHistory';
-import { ILivechatDepartmentAgents } from '../../../definition/ILivechatDepartmentAgents';
-import { ILoginServiceConfiguration } from '../../../definition/ILoginServiceConfiguration';
-import { IMessage } from '../../../definition/IMessage';
-import { INotificationDesktop } from '../../../definition/INotification';
-import { IPbxEvent } from '../../../definition/IPbxEvent';
-import { IRole } from '../../../definition/IRole';
-import { IRoom } from '../../../definition/IRoom';
-import { ISetting } from '../../../definition/ISetting';
-import { ISocketConnection } from '../../../definition/ISocketConnection';
-import { ISubscription } from '../../../definition/ISubscription';
-import { IUser } from '../../../definition/IUser';
-import { IUserSession } from '../../../definition/IUserSession';
-import { IUserStatus } from '../../../definition/IUserStatus';
-import { AutoUpdateRecord } from '../types/IMeteor';
-import { IInvite } from '../../../definition/IInvite';
-import { IWebdavAccount } from '../../../definition/IWebdavAccount';
-import { ICustomSound } from '../../../definition/ICustomSound';
+import type { AutoUpdateRecord } from '../types/IMeteor';
 
 type ClientAction = 'inserted' | 'updated' | 'removed' | 'changed';
 
@@ -121,11 +124,14 @@ export type EventSignatures = {
 		diff?: undefined | Record<string, any>;
 		id: string;
 	}): void;
-	'queue.agentcalled'(userid: string, queuename: string, callerid: Record<string, string>): void;
-	'queue.agentconnected'(userid: string, queuename: string, queuedcalls: string, waittimeinqueue: string): void;
-	'queue.callerjoined'(userid: string, queuename: string, callerid: Record<string, string>, queuedcalls: string): void;
-	'queue.queuememberadded'(userid: string, queuename: string, queuedcalls: string): void;
-	'queue.queuememberremoved'(userid: string, queuename: string, queuedcalls: string): void;
-	'queue.callabandoned'(userid: string, queuename: string, queuedcallafterabandon: string): void;
+	'omnichannel.room'(
+		roomId: string,
+		data: { type: 'agentStatus'; status: string } | { type: 'queueData' | 'agentData'; data: { [k: string]: unknown } },
+	): void;
+
+	// Send all events from here
+	'voip.events'(userId: string, data: VoipEventDataSignature): void;
+	'call.callerhangup'(userId: string, data: { roomId: string }): void;
 	'watch.pbxevents'(data: { clientAction: ClientAction; data: Partial<IPbxEvent>; id: string }): void;
+	'connector.statuschanged'(enabled: boolean): void;
 };

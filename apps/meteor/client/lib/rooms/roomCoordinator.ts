@@ -1,3 +1,4 @@
+import type { IRoom, RoomType, IUser, AtLeast, ValueOf } from '@rocket.chat/core-typings';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import type { RouteOptions } from 'meteor/kadira:flow-router';
 import _ from 'underscore';
@@ -5,11 +6,8 @@ import _ from 'underscore';
 import { hasPermission } from '../../../app/authorization/client';
 import { ChatRoom, ChatSubscription } from '../../../app/models/client';
 import { openRoom } from '../../../app/ui-utils/client/lib/openRoom';
-import type { IRoom, RoomType } from '../../../definition/IRoom';
-import type { IRoomTypeConfig, IRoomTypeClientDirectives, RoomIdentification } from '../../../definition/IRoomTypeConfig';
 import { RoomSettingsEnum, RoomMemberActions, UiTextContext } from '../../../definition/IRoomTypeConfig';
-import type { IUser } from '../../../definition/IUser';
-import type { AtLeast, ValueOf } from '../../../definition/utils';
+import type { IRoomTypeConfig, IRoomTypeClientDirectives, RoomIdentification } from '../../../definition/IRoomTypeConfig';
 import { RoomCoordinator } from '../../../lib/rooms/coordinator';
 import { roomExit } from './roomExit';
 
@@ -40,7 +38,7 @@ class RoomCoordinatorClient extends RoomCoordinator {
 			getAvatarPath(_room): string {
 				return '';
 			},
-			getIcon(_room: Partial<IRoom>): string | undefined {
+			getIcon(_room: Partial<IRoom>): IRoomTypeConfig['icon'] {
 				return this.config.icon;
 			},
 			getUserStatus(_roomId: string): string | undefined {
@@ -90,11 +88,11 @@ class RoomCoordinatorClient extends RoomCoordinator {
 		}
 	}
 
-	openRoom(type: string, name: string, render = true): void {
+	openRoom(type: RoomType, name: string, render = true): void {
 		openRoom(type, name, render);
 	}
 
-	getIcon(room: Partial<IRoom>): string | undefined {
+	getIcon(room: Partial<IRoom>): IRoomTypeConfig['icon'] {
 		return room?.t && this.getRoomDirectives(room.t)?.getIcon(room);
 	}
 

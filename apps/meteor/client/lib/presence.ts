@@ -1,9 +1,9 @@
+import type { IUser } from '@rocket.chat/core-typings';
+import { UserStatus } from '@rocket.chat/core-typings';
 import { Emitter, EventHandlerOf } from '@rocket.chat/emitter';
 import { Meteor } from 'meteor/meteor';
 
 import { APIClient } from '../../app/utils/client';
-import { IUser } from '../../definition/IUser';
-import { UserStatus } from '../../definition/UserStatus';
 
 export const STATUS_MAP = [UserStatus.OFFLINE, UserStatus.ONLINE, UserStatus.AWAY, UserStatus.BUSY];
 
@@ -26,11 +26,6 @@ const store = new Map<string, UserPresence>();
 export type UserPresence = Readonly<
 	Partial<Pick<IUser, 'name' | 'status' | 'utcOffset' | 'statusText' | 'avatarETag' | 'roles' | 'username'>> & Required<Pick<IUser, '_id'>>
 >;
-
-type UsersPresencePayload = {
-	users: UserPresence[];
-	full: boolean;
-};
 
 const isUid = (eventType: keyof Events): eventType is UserPresence['_id'] =>
 	Boolean(eventType) && typeof eventType === 'string' && !['reset', 'restart', 'remove'].includes(eventType);
@@ -81,7 +76,7 @@ const getPresence = ((): ((uid: UserPresence['_id']) => void) => {
 					ids: [...currentUids],
 				};
 
-				const { users } = (await APIClient.v1.get('users.presence', params)) as UsersPresencePayload;
+				const { users } = await APIClient.get('/v1/users.presence', params);
 
 				users.forEach((user) => {
 					if (!store.has(user._id)) {

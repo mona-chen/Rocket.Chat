@@ -1,4 +1,5 @@
-import { IUser, IUserEmail } from '../../../../definition/IUser';
+import type { IUser, IUserEmail } from '@rocket.chat/core-typings';
+
 import { settings } from '../../../settings/server';
 import { getUserPreference, getURL } from '../../../utils/server';
 import { API } from '../api';
@@ -24,7 +25,7 @@ const getUserPreferences = (me: IUser): Record<string, unknown> => {
 API.helperMethods.set('getUserInfo', function _getUserInfo(me: IUser) {
 	const verifiedEmail = isVerifiedEmail(me);
 
-	const userPreferences = (me.settings && me.settings.preferences) || {};
+	const userPreferences = me.settings?.preferences ?? {};
 
 	return {
 		...me,

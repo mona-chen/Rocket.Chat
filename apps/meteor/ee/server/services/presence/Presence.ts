@@ -1,12 +1,13 @@
+import type { UserStatus } from '@rocket.chat/core-typings';
+
 import { newConnection } from './actions/newConnection';
 import { removeConnection } from './actions/removeConnection';
 import { removeLostConnections } from './actions/removeLostConnections';
 import { setStatus, setConnectionStatus } from './actions/setStatus';
 import { updateUserPresence } from './actions/updateUserPresence';
 import { ServiceClass } from '../../../../server/sdk/types/ServiceClass';
-import { IPresence } from '../../../../server/sdk/types/IPresence';
-import { UserStatus } from '../../../../definition/UserStatus';
-import { IBrokerNode } from '../../../../server/sdk/types/IBroker';
+import type { IPresence } from '../../../../server/sdk/types/IPresence';
+import type { IBrokerNode } from '../../../../server/sdk/types/IBroker';
 
 export class Presence extends ServiceClass implements IPresence {
 	protected name = 'presence';

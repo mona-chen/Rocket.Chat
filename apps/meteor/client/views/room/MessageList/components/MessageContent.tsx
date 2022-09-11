@@ -1,68 +1,73 @@
 /* eslint-disable complexity */
-import { MessageBody } from '@rocket.chat/fuselage';
+import { IMessage, isDiscussionMessage, isThreadMainMessage, ISubscription, isE2EEMessage } from '@rocket.chat/core-typings';
+import { MessageBody, MessageBlock } from '@rocket.chat/fuselage';
+import { useTranslation, useUserId, TranslationKey } from '@rocket.chat/ui-contexts';
 import React, { FC, memo } from 'react';
 
-import { IMessage, isDiscussionMessage, isThreadMainMessage } from '../../../../../definition/IMessage';
-import { ISubscription } from '../../../../../definition/ISubscription';
-import { isE2EEMessage } from '../../../../../lib/isE2EEMessage';
-import Attachments from '../../../../components/Message/Attachments';
-import MessageActions from '../../../../components/Message/MessageActions';
-import MessageBodyRender from '../../../../components/Message/MessageBodyRender';
-import BroadcastMetric from '../../../../components/Message/Metrics/Broadcast';
-import DiscussionMetric from '../../../../components/Message/Metrics/Discussion';
-import ThreadMetric from '../../../../components/Message/Metrics/Thread';
-import { TranslationKey } from '../../../../contexts/TranslationContext';
-import { useUserId } from '../../../../contexts/UserContext';
+import Attachments from '../../../../components/message/Attachments';
+import MessageActions from '../../../../components/message/MessageActions';
+import BroadcastMetric from '../../../../components/message/Metrics/Broadcast';
+import DiscussionMetric from '../../../../components/message/Metrics/Discussion';
+import ThreadMetric from '../../../../components/message/Metrics/Thread';
 import { useUserData } from '../../../../hooks/useUserData';
 import { UserPresence } from '../../../../lib/presence';
-import MessageBlock from '../../../blocks/MessageBlock';
+import MessageBlockUiKit from '../../../blocks/MessageBlock';
 import MessageLocation from '../../../location/MessageLocation';
 import { useMessageActions, useMessageOembedIsEnabled, useMessageRunActionLink } from '../../contexts/MessageContext';
-import { useMessageListShowReadReceipt } from '../contexts/MessageListContext';
-import EncryptedMessageRender from './EncryptedMessageRender';
+import { useTranslateAttachments, useMessageListShowReadReceipt } from '../contexts/MessageListContext';
+import { isOwnUserMessage } from '../lib/isOwnUserMessage';
+import MessageContentBody from './MessageContentBody';
 import ReactionsList from './MessageReactionsList';
 import ReadReceipt from './MessageReadReceipt';
 import PreviewList from './UrlPreview';
 
-const MessageContent: FC<{ message: IMessage; sequential: boolean; subscription?: ISubscription; id: IMessage['_id'] }> = ({
-	message,
-	subscription,
-}) => {
+const MessageContent: FC<{
+	message: IMessage;
+	sequential: boolean;
+	subscription?: ISubscription;
+	id: IMessage['_id'];
+	unread: boolean;
+	mention: boolean;
+	all: boolean;
+}> = ({ message, unread, all, mention, subscription }) => {
 	const {
 		broadcast,
-		actions: { openRoom, openThread, openUserCard, replyBroadcast },
+		actions: { openRoom, openThread, replyBroadcast },
 	} = useMessageActions();
+
+	const t = useTranslation();
 
 	const runActionLink = useMessageRunActionLink();
 
 	const oembedIsEnabled = useMessageOembedIsEnabled();
 	const shouldShowReadReceipt = useMessageListShowReadReceipt();
 	const user: UserPresence = { ...message.u, roles: [], ...useUserData(message.u._id) };
-	const isEncryptedMessage = isE2EEMessage(message);
 
 	const shouldShowReactionList = message.reactions && Object.keys(message.reactions).length;
 
 	const mineUid = useUserId();
 
+	const isEncryptedMessage = isE2EEMessage(message);
+
+	const messageAttachments = useTranslateAttachments({ message });
+
 	return (
 		<>
-			<MessageBody data-qa-type='message-body'>
-				{!isEncryptedMessage && !message.blocks && message.md && (
-					<MessageBodyRender
-						onUserMentionClick={openUserCard}
-						onChannelMentionClick={openRoom}
-						mentions={message?.mentions || []}
-						channels={message?.channels || []}
-						tokens={message.md}
-					/>
-				)}
+			{!message.blocks && (message.md || message.msg) && (
+				<MessageBody data-qa-type='message-body'>
+					{!isEncryptedMessage && <MessageContentBody message={message} />}
+					{isEncryptedMessage && message.e2e === 'done' && <MessageContentBody message={message} />}
+					{isEncryptedMessage && message.e2e === 'pending' && t('E2E_message_encrypted_placeholder')}
+				</MessageBody>
+			)}
+			{message.blocks && (
+				<MessageBlock fixedWidth>
+					<MessageBlockUiKit mid={message._id} blocks={message.blocks} appId rid={message.rid} />
+				</MessageBlock>
+			)}
+			{messageAttachments && <Attachments attachments={messageAttachments} file={message.file} />}
 
-				{!isEncryptedMessage && !message.blocks && !message.md && message.msg}
-
-				{isEncryptedMessage && <EncryptedMessageRender message={message} />}
-			</MessageBody>
-			{message.blocks && <MessageBlock mid={message._id} blocks={message.blocks} appId rid={message.rid} />}
-			{message.attachments && <Attachments attachments={message.attachments} file={message.file} />}
+			{oembedIsEnabled && !!message.urls?.length && <PreviewList urls={message.urls} />}
 
 			{message.actionLinks?.length && (
 				<MessageActions
@@ -86,9 +91,9 @@ const MessageContent: FC<{ message: IMessage; sequential: boolean; subscription?
 					mid={message._id}
 					rid={message.rid}
 					lm={message.tlm}
-					unread={Boolean(subscription?.tunread?.includes(message._id))}
-					mention={Boolean(subscription?.tunreadUser?.includes(message._id))}
-					all={Boolean(subscription?.tunreadGroup?.includes(message._id))}
+					unread={unread}
+					mention={mention}
+					all={all}
 					participants={message?.replies.length}
 				/>
 			)}
@@ -105,13 +110,11 @@ const MessageContent: FC<{ message: IMessage; sequential: boolean; subscription?
 
 			{message.location && <MessageLocation location={message.location} />}
 
-			{broadcast && user.username && (
+			{broadcast && !!user.username && !isOwnUserMessage(message, subscription) && (
 				<BroadcastMetric replyBroadcast={(): void => replyBroadcast(message)} mid={message._id} username={user.username} />
 			)}
 
-			{oembedIsEnabled && message.urls && <PreviewList urls={message.urls} />}
-
-			{shouldShowReadReceipt && <ReadReceipt />}
+			{shouldShowReadReceipt && <ReadReceipt unread={message.unread} />}
 		</>
 	);
 };

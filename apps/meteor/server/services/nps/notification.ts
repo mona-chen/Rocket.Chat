@@ -3,9 +3,10 @@ import { TextObjectType } from '@rocket.chat/apps-engine/definition/uikit/blocks
 import { Meteor } from 'meteor/meteor';
 import { TAPi18n } from 'meteor/rocketchat:tap-i18n';
 import moment from 'moment';
+import type { IBanner } from '@rocket.chat/core-typings';
+import { BannerPlatform } from '@rocket.chat/core-typings';
 
 import { settings } from '../../../app/settings/server';
-import { IBanner, BannerPlatform } from '../../../definition/IBanner';
 import { sendMessagesToAdmins } from '../../lib/sendMessagesToAdmins';
 
 export const getBannerForAdmins = Meteor.bindEnvironment((expireAt: Date): Omit<IBanner, '_id'> => {

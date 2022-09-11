@@ -1,5 +1,6 @@
-import { UserStatus } from '../../../definition/UserStatus';
-import { IServiceClass } from './ServiceClass';
+import type { UserStatus } from '@rocket.chat/core-typings';
+
+import type { IServiceClass } from './ServiceClass';
 
 export interface IPresence extends IServiceClass {
 	newConnection(uid: string, session: string): Promise<{ uid: string; connectionId: string } | undefined>;

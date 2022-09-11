@@ -4,8 +4,8 @@ import { TAPi18n } from 'meteor/rocketchat:tap-i18n';
 
 import { Rooms, Subscriptions, Messages } from '../../../models/server';
 import { settings } from '../../../settings/server';
-import { RoomSettingsEnum } from '../../../../definition/IRoomTypeConfig';
 import { roomCoordinator } from '../../../../server/lib/rooms/roomCoordinator';
+import { RoomSettingsEnum } from '../../../../definition/IRoomTypeConfig';
 
 export const saveRoomType = function (rid, roomType, user, sendMessage = true) {
 	if (!Match.test(rid, String)) {
@@ -41,11 +41,11 @@ export const saveRoomType = function (rid, roomType, user, sendMessage = true) {
 	if (sendMessage) {
 		let message;
 		if (roomType === 'c') {
-			message = TAPi18n.__('Channel', {
+			message = TAPi18n.__('public', {
 				lng: (user && user.language) || settings.get('Language') || 'en',
 			});
 		} else {
-			message = TAPi18n.__('Private_Group', {
+			message = TAPi18n.__('private', {
 				lng: (user && user.language) || settings.get('Language') || 'en',
 			});
 		}

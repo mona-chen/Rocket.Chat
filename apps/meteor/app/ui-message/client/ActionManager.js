@@ -3,15 +3,14 @@ import { Meteor } from 'meteor/meteor';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Random } from 'meteor/random';
 import { Emitter } from '@rocket.chat/emitter';
+import { UIKitInteractionTypes } from '@rocket.chat/core-typings';
 
 import Notifications from '../../notifications/client/lib/Notifications';
 import { CachedCollectionManager } from '../../ui-cached-collection';
 import { modal } from '../../ui-utils/client/lib/modal';
-import { APIClient } from '../../utils';
-import { UIKitInteractionTypes } from '../../../definition/UIKit';
+import { APIClient, t } from '../../utils/client';
 import * as banners from '../../../client/lib/banners';
 import { dispatchToastMessage } from '../../../client/lib/toast';
-import { t } from '../../utils/client';
 
 const events = new Emitter();
 
@@ -169,7 +168,7 @@ export const triggerAction = async ({ type, actionId, appId, rid, mid, viewId, c
 
 		setTimeout(reject, TRIGGER_TIMEOUT, [TRIGGER_TIMEOUT_ERROR, { triggerId, appId }]);
 
-		const { type: interactionType, ...data } = await APIClient.post(`apps/ui.interaction/${appId}`, {
+		const { type: interactionType, ...data } = await APIClient.post(`/apps/ui.interaction/${appId}`, {
 			type,
 			actionId,
 			payload,

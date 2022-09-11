@@ -1,5 +1,5 @@
-import { Settings } from '../../../app/models/server/raw';
-import { ISettingStatistics, ISettingStatisticsObject } from '../../../definition/ISetting';
+import type { ISettingStatistics, ISettingStatisticsObject } from '@rocket.chat/core-typings';
+import { Settings } from '@rocket.chat/models';
 
 const setSettingsStatistics = async (settings: ISettingStatistics): Promise<ISettingStatisticsObject> => {
 	const {
@@ -28,8 +28,6 @@ const setSettingsStatistics = async (settings: ISettingStatistics): Promise<ISet
 		otrEnable,
 		pushEnable,
 		threadsEnabled,
-		bigBlueButton,
-		jitsiEnabled,
 		webRTCEnableChannel,
 		webRTCEnablePrivate,
 		webRTCEnableDirect,
@@ -96,10 +94,6 @@ const setSettingsStatistics = async (settings: ISettingStatistics): Promise<ISet
 		threads: {
 			threadsEnabled,
 		},
-		videoConference: {
-			bigBlueButton,
-			jitsiEnabled,
-		},
 		webRTC: {
 			webRTCEnableChannel,
 			webRTCEnablePrivate,
@@ -135,8 +129,6 @@ export const getSettingsStatistics = async (): Promise<ISettingStatisticsObject>
 			{ key: 'OTR_Enable', alias: 'otrEnable' },
 			{ key: 'Push_enable', alias: 'pushEnable' },
 			{ key: 'Threads_enabled', alias: 'threadsEnabled' },
-			{ key: 'bigbluebutton_Enabled', alias: 'bigBlueButton' },
-			{ key: 'Jitsi_Enabled', alias: 'jitsiEnabled' },
 			{ key: 'WebRTC_Enable_Channel', alias: 'webRTCEnableChannel' },
 			{ key: 'WebRTC_Enable_Private', alias: 'webRTCEnablePrivate' },
 			{ key: 'WebRTC_Enable_Direct', alias: 'webRTCEnableDirect' },

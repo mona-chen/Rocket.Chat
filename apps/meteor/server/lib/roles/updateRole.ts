@@ -1,5 +1,6 @@
-import type { IRole } from '../../../definition/IRole';
-import { Roles } from '../../../app/models/server/raw';
+import type { IRole } from '@rocket.chat/core-typings';
+import { Roles } from '@rocket.chat/models';
+
 import { MeteorError } from '../../sdk/errors';
 import { isValidRoleScope } from '../../../lib/roles/isValidRoleScope';
 import { api } from '../../sdk/api';

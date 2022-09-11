@@ -1,12 +1,9 @@
-import { Table, Icon, Button } from '@rocket.chat/fuselage';
+import { Table, IconButton } from '@rocket.chat/fuselage';
 import { useMutableCallback } from '@rocket.chat/fuselage-hooks';
+import { useSetModal, useToastMessageDispatch, useMethod, useTranslation } from '@rocket.chat/ui-contexts';
 import React, { FC } from 'react';
 
 import GenericModal from '../../../components/GenericModal';
-import { useSetModal } from '../../../contexts/ModalContext';
-import { useMethod } from '../../../contexts/ServerContext';
-import { useToastMessageDispatch } from '../../../contexts/ToastMessagesContext';
-import { useTranslation } from '../../../contexts/TranslationContext';
 
 const RemoveChatButton: FC<{ _id: string; reload: () => void }> = ({ _id, reload }) => {
 	const removeChat = useMethod('livechat:removeRoom');
@@ -45,10 +42,8 @@ const RemoveChatButton: FC<{ _id: string; reload: () => void }> = ({ _id, reload
 	});
 
 	return (
-		<Table.Cell fontScale='p2' color='hint' withTruncatedText>
-			<Button small ghost title={t('Remove')} onClick={handleDelete}>
-				<Icon name='trash' size='x16' />
-			</Button>
+		<Table.Cell fontScale='p2' color='hint' withTruncatedText data-qa='current-chats-cell-delete'>
+			<IconButton small icon='trash' title={t('Remove')} onClick={handleDelete} />
 		</Table.Cell>
 	);
 };

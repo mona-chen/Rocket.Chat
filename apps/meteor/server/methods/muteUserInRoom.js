@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { Match, check } from 'meteor/check';
 
-import { Rooms, Subscriptions, Users, Messages } from '../../app/models';
+import { Rooms, Subscriptions, Users, Messages } from '../../app/models/server';
 import { hasPermission } from '../../app/authorization';
 import { callbacks } from '../../lib/callbacks';
-import { RoomMemberActions } from '../../definition/IRoomTypeConfig';
 import { roomCoordinator } from '../lib/rooms/roomCoordinator';
+import { RoomMemberActions } from '../../definition/IRoomTypeConfig';
 
 Meteor.methods({
 	muteUserInRoom(data) {

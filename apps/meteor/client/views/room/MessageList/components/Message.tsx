@@ -1,11 +1,11 @@
 /* eslint-disable complexity */
+import type { IMessage } from '@rocket.chat/core-typings';
 import { Message as MessageTemplate, MessageLeftContainer, MessageContainer, MessageBody, CheckBox } from '@rocket.chat/fuselage';
 import { useToggle } from '@rocket.chat/fuselage-hooks';
 import React, { FC, memo } from 'react';
 
-import { IMessage } from '../../../../../definition/IMessage';
-import { ISubscription } from '../../../../../definition/ISubscription';
 import UserAvatar from '../../../../components/avatar/UserAvatar';
+import { useMessageActions } from '../../contexts/MessageContext';
 import { useIsMessageHighlight } from '../contexts/MessageHighlightContext';
 import { useIsSelecting, useToggleSelect, useIsSelectedMessage, useCountSelected } from '../contexts/SelectedMessagesContext';
 import MessageContent from './MessageContent';
@@ -14,14 +14,19 @@ import MessageHeader from './MessageHeader';
 import { MessageIndicators } from './MessageIndicators';
 import Toolbox from './Toolbox';
 
-const Message: FC<{ message: IMessage; sequential: boolean; subscription?: ISubscription; id: IMessage['_id'] }> = ({
-	message,
-	sequential,
-	subscription,
-	...props
-}) => {
+const Message: FC<{
+	message: IMessage;
+	sequential: boolean;
+	id: IMessage['_id'];
+	unread: boolean;
+	mention: boolean;
+	all: boolean;
+}> = ({ message, sequential, all, mention, unread, ...props }) => {
 	const isMessageHighlight = useIsMessageHighlight(message._id);
-	const [isMessageIgnored, toggleMessageIgnored] = useToggle(message.ignored);
+	const [isMessageIgnored, toggleMessageIgnored] = useToggle((message as { ignored?: boolean }).ignored ?? false);
+	const {
+		actions: { openUserCard },
+	} = useMessageActions();
 
 	const isSelecting = useIsSelecting();
 	const toggleSelected = useToggleSelect(message._id);
@@ -34,12 +39,21 @@ const Message: FC<{ message: IMessage; sequential: boolean; subscription?: ISubs
 			onClick={isSelecting ? toggleSelected : undefined}
 			isSelected={isSelected}
 			isEditing={isMessageHighlight}
-			// highlight={isMessageHighlight}
+			isPending={message.temp}
+			sequential={sequential}
 			data-qa-editing={isMessageHighlight}
 			data-qa-selected={isSelected}
 		>
 			<MessageLeftContainer>
-				{!sequential && message.u.username && !isSelecting && <UserAvatar username={message.u.username} size={'x36'} />}
+				{!sequential && message.u.username && !isSelecting && (
+					<UserAvatar
+						url={message.avatar}
+						username={message.u.username}
+						size={'x36'}
+						onClick={openUserCard(message.u.username)}
+						style={{ cursor: 'pointer' }}
+					/>
+				)}
 				{isSelecting && <CheckBox checked={isSelected} onChange={toggleSelected} />}
 				{sequential && <MessageIndicators message={message} />}
 			</MessageLeftContainer>
@@ -47,7 +61,9 @@ const Message: FC<{ message: IMessage; sequential: boolean; subscription?: ISubs
 			<MessageContainer>
 				{!sequential && <MessageHeader message={message} />}
 
-				{!isMessageIgnored && <MessageContent id={message._id} message={message} subscription={subscription} sequential={sequential} />}
+				{!isMessageIgnored && (
+					<MessageContent id={message._id} message={message} unread={unread} mention={mention} all={all} sequential={sequential} />
+				)}
 				{isMessageIgnored && (
 					<MessageBody data-qa-type='message-body'>
 						<MessageContentIgnored onShowMessageIgnored={toggleMessageIgnored} />

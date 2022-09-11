@@ -1,7 +1,9 @@
+import type { AtLeast, IRoom } from '@rocket.chat/core-typings';
+import { isRoomFederated } from '@rocket.chat/core-typings';
 import { Meteor } from 'meteor/meteor';
 import { Session } from 'meteor/session';
 
-import { hasAtLeastOnePermission, hasPermission } from '../../../../app/authorization/client';
+import { hasAtLeastOnePermission } from '../../../../app/authorization/client';
 import { Subscriptions, Users, ChatRoom } from '../../../../app/models/client';
 import { settings } from '../../../../app/settings/client';
 import { getUserPreference } from '../../../../app/utils/client';
@@ -9,8 +11,8 @@ import { getAvatarURL } from '../../../../app/utils/lib/getAvatarURL';
 import { getUserAvatarURL } from '../../../../app/utils/lib/getUserAvatarURL';
 import type { IRoomTypeClientDirectives } from '../../../../definition/IRoomTypeConfig';
 import { RoomSettingsEnum, RoomMemberActions, UiTextContext } from '../../../../definition/IRoomTypeConfig';
-import type { AtLeast } from '../../../../definition/utils';
 import { getDirectMessageRoomType } from '../../../../lib/rooms/roomTypes/direct';
+import * as Federation from '../../federation/Federation';
 import { roomCoordinator } from '../roomCoordinator';
 
 export const DirectMessageRoomType = getDirectMessageRoomType(roomCoordinator);
@@ -35,6 +37,9 @@ roomCoordinator.add(DirectMessageRoomType, {
 	},
 
 	allowMemberAction(room, action) {
+		if (isRoomFederated(room as IRoom)) {
+			return Federation.actionAllowed(room, action);
+		}
 		switch (action) {
 			case RoomMemberActions.BLOCK:
 				return !this.isGroupChat(room);
@@ -134,10 +139,6 @@ roomCoordinator.add(DirectMessageRoomType, {
 	},
 
 	findRoom(identifier) {
-		if (!hasPermission('view-d-room')) {
-			return;
-		}
-
 		const query = {
 			t: 'd',
 			$or: [{ name: identifier }, { rid: identifier }],

@@ -1,10 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import s from 'underscore.string';
 import { Accounts } from 'meteor/accounts-base';
+import type { IUser } from '@rocket.chat/core-typings';
+import { Invites } from '@rocket.chat/models';
 
 import { settings } from '../../../settings/server';
 import { Users } from '../../../models/server';
-import { Invites } from '../../../models/server/raw';
 import { hasPermission } from '../../../authorization/server';
 import { RateLimiter } from '../lib';
 import { addUserToRoom } from './addUserToRoom';
@@ -12,7 +13,6 @@ import { api } from '../../../../server/sdk/api';
 import { checkUsernameAvailability, setUserAvatar } from '.';
 import { getAvatarSuggestionForUser } from './getAvatarSuggestionForUser';
 import { SystemLogger } from '../../../../server/lib/logger/system';
-import { IUser } from '../../../../definition/IUser';
 
 export const _setUsername = function (userId: string, u: string, fullUser: IUser): unknown {
 	const username = s.trim(u);

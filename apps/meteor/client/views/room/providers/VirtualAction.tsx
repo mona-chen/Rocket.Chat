@@ -1,7 +1,7 @@
+import type { IRoom } from '@rocket.chat/core-typings';
+import { RoomType } from '@rocket.chat/core-typings';
 import { useLayoutEffect, memo } from 'react';
 
-import { IRoom } from '../../../../definition/IRoom';
-import { RoomType } from '../../../../definition/RoomType';
 import { Store } from '../lib/Toolbox/generator';
 import { ToolboxAction } from '../lib/Toolbox/index';
 
@@ -35,7 +35,7 @@ const VirtualAction = ({
 	id: string;
 	action: ToolboxAction;
 	room: IRoom;
-	handleChange: Function;
+	handleChange: (callback: (list: Store<ToolboxAction>) => void) => void;
 }): null => {
 	const config = typeof action === 'function' ? action({ room }) : action;
 

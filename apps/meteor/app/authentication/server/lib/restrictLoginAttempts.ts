@@ -1,13 +1,14 @@
+import type { IServerEvent } from '@rocket.chat/core-typings';
+import { ServerEventType } from '@rocket.chat/core-typings';
+import { Rooms, ServerEvents, Sessions, Users } from '@rocket.chat/models';
 import moment from 'moment';
 
-import { ILoginAttempt } from '../ILoginAttempt';
-import { ServerEvents, Users, Rooms, Sessions } from '../../../models/server/raw';
-import { IServerEventType, IServerEvent } from '../../../../definition/IServerEvent';
-import { settings } from '../../../settings/server';
 import { addMinutesToADate } from '../../../../lib/utils/addMinutesToADate';
 import { getClientAddress } from '../../../../server/lib/getClientAddress';
 import { sendMessage } from '../../../lib/server/functions';
 import { Logger } from '../../../logger/server';
+import { settings } from '../../../settings/server';
+import type { ILoginAttempt } from '../ILoginAttempt';
 
 const logger = new Logger('LoginProtection');
 
@@ -93,7 +94,8 @@ export const isValidAttemptByUser = async (login: ILoginAttempt): Promise<boolea
 		return true;
 	}
 
-	const user = login.user || (await Users.findOneByUsername(login.methodArguments[0].user?.username));
+	const loginUsername = login.methodArguments[0].user?.username;
+	const user = login.user || (loginUsername && (await Users.findOneByUsername(loginUsername))) || undefined;
 
 	if (!user?.username) {
 		return true;
@@ -138,7 +140,7 @@ export const saveFailedLoginAttempts = async (login: ILoginAttempt): Promise<voi
 
 	await ServerEvents.insertOne({
 		ip: getClientAddress(login.connection),
-		t: IServerEventType.FAILED_LOGIN_ATTEMPT,
+		t: ServerEventType.FAILED_LOGIN_ATTEMPT,
 		ts: new Date(),
 		u: user,
 	});
@@ -152,7 +154,7 @@ export const saveSuccessfulLogin = async (login: ILoginAttempt): Promise<void> =
 
 	await ServerEvents.insertOne({
 		ip: getClientAddress(login.connection),
-		t: IServerEventType.LOGIN,
+		t: ServerEventType.LOGIN,
 		ts: new Date(),
 		u: user,
 	});

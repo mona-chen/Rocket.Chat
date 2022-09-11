@@ -1,3 +1,4 @@
+import { AtLeast, IRoom, isRoomFederated } from '@rocket.chat/core-typings';
 import { Meteor } from 'meteor/meteor';
 
 import { hasPermission } from '../../../../app/authorization/client';
@@ -7,8 +8,8 @@ import { getUserPreference } from '../../../../app/utils/client';
 import { getAvatarURL } from '../../../../app/utils/lib/getAvatarURL';
 import type { IRoomTypeClientDirectives } from '../../../../definition/IRoomTypeConfig';
 import { RoomSettingsEnum, RoomMemberActions, UiTextContext } from '../../../../definition/IRoomTypeConfig';
-import type { AtLeast } from '../../../../definition/utils';
 import { getPrivateRoomType } from '../../../../lib/rooms/roomTypes/private';
+import * as Federation from '../../federation/Federation';
 import { roomCoordinator } from '../roomCoordinator';
 
 export const PrivateRoomType = getPrivateRoomType(roomCoordinator);
@@ -33,6 +34,9 @@ roomCoordinator.add(PrivateRoomType, {
 	},
 
 	allowMemberAction(_room, action) {
+		if (isRoomFederated(_room as IRoom)) {
+			return Federation.actionAllowed(_room, action);
+		}
 		switch (action) {
 			case RoomMemberActions.BLOCK:
 				return false;

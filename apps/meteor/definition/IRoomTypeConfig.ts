@@ -1,11 +1,5 @@
 import type { RouteOptions } from 'meteor/kadira:flow-router';
-
-import type { IRoom, RoomType } from './IRoom';
-import type { IRocketChatRecord } from './IRocketChatRecord';
-import type { IUser } from './IUser';
-import type { IMessage } from './IMessage';
-import type { ReadReceipt } from './ReadReceipt';
-import type { ValueOf, AtLeast } from './utils';
+import type { IRoom, RoomType, IRocketChatRecord, IUser, IMessage, ReadReceipt, ValueOf, AtLeast } from '@rocket.chat/core-typings';
 
 export type RoomIdentification = { rid?: IRoom['_id']; name?: string };
 export interface IRoomTypeRouteConfig {
@@ -54,7 +48,7 @@ export const UiTextContext = {
 export interface IRoomTypeConfig {
 	identifier: string;
 	order: number;
-	icon?: string;
+	icon?: 'hash' | 'hashtag' | 'hashtag-lock' | 'at' | 'omnichannel' | 'phone' | 'star';
 	header?: string;
 	label?: string;
 	route?: IRoomTypeRouteConfig;
@@ -76,7 +70,7 @@ export interface IRoomTypeClientDirectives {
 	getAvatarPath: (
 		room: AtLeast<IRoom, '_id' | 'name' | 'fname' | 'prid' | 'avatarETag' | 'uids' | 'usernames'> & { username?: IRoom['_id'] },
 	) => string;
-	getIcon: (room: Partial<IRoom>) => string | undefined;
+	getIcon: (room: Partial<IRoom>) => IRoomTypeConfig['icon'];
 	getUserStatus: (roomId: string) => string | undefined;
 	findRoom: (identifier: string) => IRoom | undefined;
 	showJoinLink: (roomId: string) => boolean;

@@ -1,9 +1,8 @@
 /* eslint-env mocha */
+import type { IMessage, ISubscription } from '@rocket.chat/core-typings';
 import { expect } from 'chai';
 
 import { MessageTypes } from '../../../../../app/ui-utils/lib/MessageTypes';
-import { IMessage } from '../../../../../definition/IMessage';
-import { ISubscription } from '../../../../../definition/ISubscription';
 import { isOwnUserMessage } from './isOwnUserMessage';
 
 const date = new Date('2021-10-27T00:00:00.000Z');
@@ -26,7 +25,7 @@ const baseMessage = {
 MessageTypes.registerType({
 	id: 'au',
 	system: true,
-	message: 'User_added_by',
+	message: 'User_added_to',
 });
 
 describe('isUserMessage', () => {

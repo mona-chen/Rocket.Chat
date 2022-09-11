@@ -1,3 +1,4 @@
+import type { AtLeast, IMessage, IRoom, ISubscription } from '@rocket.chat/core-typings';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
@@ -6,9 +7,6 @@ import { e2e } from '../../app/e2e/client/rocketchat.e2e';
 import { Subscriptions, Rooms } from '../../app/models/client';
 import { Notifications } from '../../app/notifications/client';
 import { settings } from '../../app/settings/client';
-import { IMessage } from '../../definition/IMessage';
-import { IRoom } from '../../definition/IRoom';
-import { ISubscription } from '../../definition/ISubscription';
 import { onClientBeforeSendMessage } from '../lib/onClientBeforeSendMessage';
 import { onClientMessageReceived } from '../lib/onClientMessageReceived';
 import { isLayoutEmbedded } from '../lib/utils/isLayoutEmbedded';
@@ -105,7 +103,7 @@ Meteor.startup(() => {
 		});
 
 		// Encrypt messages before sending
-		offClientBeforeSendMessage = onClientBeforeSendMessage.use(async (message: IMessage) => {
+		offClientBeforeSendMessage = onClientBeforeSendMessage.use(async (message: AtLeast<IMessage, '_id' | 'rid' | 'msg'>) => {
 			const e2eRoom = await e2e.getInstanceByRoomId(message.rid);
 
 			if (!e2eRoom) {

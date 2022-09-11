@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import type { ILivechatBusinessHour } from '@rocket.chat/core-typings';
 
-import { ILivechatBusinessHour } from '../../../../definition/ILivechatBusinessHour';
 import { businessHourManager } from '../business-hour';
 
 Meteor.methods({
@@ -8,7 +8,7 @@ Meteor.methods({
 		try {
 			Promise.await(businessHourManager.saveBusinessHour(businessHourData));
 		} catch (e) {
-			throw new Meteor.Error(e.message);
+			throw new Meteor.Error(e instanceof Error ? e.message : String(e));
 		}
 	},
 });

@@ -1,5 +1,6 @@
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import type { RouteOptions } from 'meteor/kadira:flow-router';
+import type { SettingValue, RoomType } from '@rocket.chat/core-typings';
 
 import type {
 	IRoomTypeConfig,
@@ -8,8 +9,6 @@ import type {
 	IRoomTypeServerDirectives,
 	RoomIdentification,
 } from '../../definition/IRoomTypeConfig';
-import type { SettingValue } from '../../definition/ISetting';
-import type { RoomType } from '../../definition/IRoom';
 
 export abstract class RoomCoordinator {
 	roomTypes: Record<string, { config: IRoomTypeConfig; directives: IRoomTypeClientDirectives | IRoomTypeServerDirectives }>;
@@ -91,7 +90,7 @@ export abstract class RoomCoordinator {
 
 		this.roomTypes[roomConfig.identifier] = { config: roomConfig, directives };
 
-		if (roomConfig.route && roomConfig.route.path && roomConfig.route.name && roomConfig.route.action) {
+		if (roomConfig.route?.path && roomConfig.route.name && roomConfig.route.action) {
 			const routeConfig = {
 				name: roomConfig.route.name,
 				action: roomConfig.route.action,

@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
+import { isOmnichannelRoom } from '@rocket.chat/core-typings';
+import type { IUser, IRoom } from '@rocket.chat/core-typings';
+import { Users } from '@rocket.chat/models';
 
 import { callbacks } from '../../../../../lib/callbacks';
-import { Users } from '../../../../../app/models/server/raw';
 import { settings } from '../../../../../app/settings/server';
 import { getMaxNumberSimultaneousChat } from '../lib/Helper';
-import { isOmnichannelRoom, IRoom } from '../../../../../definition/IRoom';
-import { IUser } from '../../../../../definition/IUser';
 
 callbacks.add(
 	'beforeJoinRoom',
@@ -19,10 +19,12 @@ callbacks.add(
 		}
 
 		const { departmentId } = room;
-		const maxNumberSimultaneousChat = getMaxNumberSimultaneousChat({
-			agentId: user._id,
-			departmentId,
-		});
+		const maxNumberSimultaneousChat = Promise.await(
+			getMaxNumberSimultaneousChat({
+				agentId: user._id,
+				departmentId,
+			}),
+		);
 
 		if (maxNumberSimultaneousChat === 0) {
 			return user;

@@ -5,14 +5,10 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import ldapEscape from 'ldap-escape';
 import _ from 'underscore';
+import type { ILDAPEntry, LDAPLoginResult, ILDAPUniqueIdentifierField, IUser, LoginUsername, IImportUser } from '@rocket.chat/core-typings';
+import { Users as UsersRaw } from '@rocket.chat/models';
 
-import { ILDAPEntry } from '../../../definition/ldap/ILDAPEntry';
-import { LDAPLoginResult } from '../../../definition/ldap/ILDAPLoginResult';
-import { ILDAPUniqueIdentifierField } from '../../../definition/ldap/ILDAPUniqueIdentifierField';
-import { IUser, LoginUsername } from '../../../definition/IUser';
-import { IImportUser } from '../../../definition/IImportUser';
 import { settings } from '../../../app/settings/server';
-import { Users as UsersRaw } from '../../../app/models/server/raw';
 import { LDAPConnection } from './Connection';
 import { LDAPDataConverter } from './DataConverter';
 import { getLDAPConditionalSetting } from './getLDAPConditionalSetting';
@@ -20,6 +16,7 @@ import { logger, authLogger, connLogger } from './Logger';
 import type { IConverterOptions } from '../../../app/importer/server/classes/ImportDataConverter';
 import { callbacks } from '../../../lib/callbacks';
 import { setUserAvatar } from '../../../app/lib/server/functions';
+import { omit } from '../../../lib/utils/omit';
 
 export class LDAPManager {
 	public static async login(username: string, password: string): Promise<LDAPLoginResult> {
@@ -272,7 +269,7 @@ export class LDAPManager {
 	): Promise<IUser | undefined> {
 		logger.debug({
 			msg: 'Syncing user data',
-			ldapUser: _.omit(ldapUser, '_raw'),
+			ldapUser: omit(ldapUser, '_raw'),
 			user: { ...(existingUser && { email: existingUser.emails, _id: existingUser._id }) },
 		});
 
@@ -386,7 +383,7 @@ export class LDAPManager {
 			return [`${username}@${settings.get('LDAP_Default_Domain')}`];
 		}
 
-		if (ldapUser.mail && ldapUser.mail.includes('@')) {
+		if (ldapUser.mail?.includes('@')) {
 			return [ldapUser.mail];
 		}
 

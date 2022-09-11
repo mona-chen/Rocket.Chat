@@ -1,11 +1,11 @@
+import type { ILivechatTag } from '@rocket.chat/core-typings';
 import { Callout } from '@rocket.chat/fuselage';
+import { useTranslation } from '@rocket.chat/ui-contexts';
 import React, { ReactElement, useMemo, ReactNode } from 'react';
 
 import { FormSkeleton } from '../../../../client/components/Skeleton';
-import { useTranslation } from '../../../../client/contexts/TranslationContext';
 import { AsyncStatePhase } from '../../../../client/hooks/useAsyncState';
 import { useEndpointData } from '../../../../client/hooks/useEndpointData';
-import { ILivechatTag } from '../../../../definition/ILivechatTag';
 import TagEdit from './TagEdit';
 
 type TagEditWithDepartmentDataPropsType = {
@@ -23,7 +23,7 @@ function TagEditWithDepartmentData({ data, title, ...props }: TagEditWithDepartm
 		phase: currentDepartmentsState,
 		error: currentDepartmentsError,
 	} = useEndpointData(
-		'livechat/department.listByIds',
+		'/v1/livechat/department.listByIds',
 		useMemo(() => ({ ids: data?.departments ? data.departments : [] }), [data]),
 	);
 

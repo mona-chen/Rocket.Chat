@@ -1,14 +1,13 @@
 import { Meteor } from 'meteor/meteor';
+import type { IMessage, IUser } from '@rocket.chat/core-typings';
+import { Uploads } from '@rocket.chat/models';
 
 import { FileUpload } from '../../../file-upload/server';
 import { settings } from '../../../settings/server';
 import { Messages, Rooms } from '../../../models/server';
-import { Uploads } from '../../../models/server/raw';
 import { api } from '../../../../server/sdk/api';
 import { callbacks } from '../../../../lib/callbacks';
 import { Apps } from '../../../apps/server';
-import { IMessage } from '../../../../definition/IMessage';
-import { IUser } from '../../../../definition/IUser';
 
 export const deleteMessage = async function (message: IMessage, user: IUser): Promise<void> {
 	const deletedMsg = Messages.findOneById(message._id);
@@ -38,7 +37,7 @@ export const deleteMessage = async function (message: IMessage, user: IUser): Pr
 		}
 
 		for await (const file of files) {
-			file?._id && (await Uploads.update({ _id: file._id }, { $set: { _hidden: true } }));
+			file?._id && (await Uploads.updateOne({ _id: file._id }, { $set: { _hidden: true } }));
 		}
 	} else {
 		if (!showDeletedStatus) {
@@ -70,6 +69,6 @@ export const deleteMessage = async function (message: IMessage, user: IUser): Pr
 	}
 
 	if (bridges) {
-		bridges.getListenerBridge().messageEvent('IPostMessageDeleted', deletedMsg);
+		bridges.getListenerBridge().messageEvent('IPostMessageDeleted', deletedMsg, user);
 	}
 };

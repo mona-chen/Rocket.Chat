@@ -1,8 +1,8 @@
 import { HTTP } from 'meteor/http';
+import type { CloudConfirmationPollData } from '@rocket.chat/core-typings';
 
 import { settings } from '../../../settings/server';
 import { SystemLogger } from '../../../../server/lib/logger/system';
-import { CloudConfirmationPollData } from '../../../../definition/ICloud';
 
 export async function getConfirmationPoll(deviceCode: string): Promise<CloudConfirmationPollData> {
 	const cloudUrl = settings.get('Cloud_Url');
@@ -10,8 +10,8 @@ export async function getConfirmationPoll(deviceCode: string): Promise<CloudConf
 	let result;
 	try {
 		result = HTTP.get(`${cloudUrl}/api/v2/register/workspace/poll?token=${deviceCode}`);
-	} catch (e) {
-		if (e.response && e.response.data && e.response.data.error) {
+	} catch (e: any) {
+		if (e.response?.data?.error) {
 			SystemLogger.error(`Failed to register with Rocket.Chat Cloud. ErrorCode: ${e.response.data.error}`);
 		} else {
 			SystemLogger.error(e);

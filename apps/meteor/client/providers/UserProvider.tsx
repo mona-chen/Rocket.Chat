@@ -1,13 +1,11 @@
+import type { IRoom, ISubscription, IUser } from '@rocket.chat/core-typings';
+import { UserContext } from '@rocket.chat/ui-contexts';
 import { Meteor } from 'meteor/meteor';
 import React, { useMemo, FC } from 'react';
 
 import { Subscriptions, Rooms } from '../../app/models/client';
 import { getUserPreference } from '../../app/utils/client';
-import { IRoom } from '../../definition/IRoom';
-import { ISubscription } from '../../definition/ISubscription';
-import { IUser } from '../../definition/IUser';
 import { callbacks } from '../../lib/callbacks';
-import { UserContext } from '../contexts/UserContext';
 import { useReactiveValue } from '../hooks/useReactiveValue';
 import { createReactiveSubscriptionFactory } from './createReactiveSubscriptionFactory';
 
@@ -50,7 +48,9 @@ const UserProvider: FC = ({ children }) => {
 			user,
 			loginWithPassword,
 			logout,
-			queryPreference: createReactiveSubscriptionFactory((key, defaultValue) => getUserPreference(userId, key, defaultValue)),
+			queryPreference: createReactiveSubscriptionFactory(
+				<T,>(key: string, defaultValue?: T) => getUserPreference(userId, key, defaultValue) as T,
+			),
 			querySubscription: createReactiveSubscriptionFactory<ISubscription | undefined>((query, fields) =>
 				Subscriptions.findOne(query, { fields }),
 			),

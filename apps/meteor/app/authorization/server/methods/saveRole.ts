@@ -1,28 +1,28 @@
 import { Meteor } from 'meteor/meteor';
+import { isRoleCreateProps } from '@rocket.chat/rest-typings';
+import { Roles } from '@rocket.chat/models';
 
 import { settings } from '../../../settings/server';
 import { hasPermission } from '../functions/hasPermission';
-import { Roles } from '../../../models/server/raw';
 import { methodDeprecationLogger } from '../../../lib/server/lib/deprecationWarningLogger';
 import { updateRoleAsync } from '../../../../server/lib/roles/updateRole';
 import { insertRoleAsync } from '../../../../server/lib/roles/insertRole';
-import { isRoleCreateProps } from '../../../../definition/rest/v1/roles';
 
 Meteor.methods({
 	async 'authorization:saveRole'(roleData: Record<string, unknown>) {
 		methodDeprecationLogger.warn('authorization:saveRole will be deprecated in future versions of Rocket.Chat');
 		const userId = Meteor.userId();
 
+		if (!isRoleCreateProps(roleData)) {
+			throw new Meteor.Error('error-invalid-role-properties', 'The role properties are invalid.', {
+				method: 'authorization:saveRole',
+			});
+		}
+
 		if (!userId || !hasPermission(userId, 'access-permissions')) {
 			throw new Meteor.Error('error-action-not-allowed', 'Accessing permissions is not allowed', {
 				method: 'authorization:saveRole',
 				action: 'Accessing_permissions',
-			});
-		}
-
-		if (!isRoleCreateProps(roleData)) {
-			throw new Meteor.Error('error-invalid-role-properties', 'The role properties are invalid.', {
-				method: 'authorization:saveRole',
 			});
 		}
 

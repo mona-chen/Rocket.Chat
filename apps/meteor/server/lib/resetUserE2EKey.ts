@@ -1,10 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { TAPi18n } from 'meteor/rocketchat:tap-i18n';
+import type { IUser } from '@rocket.chat/core-typings';
 
 import { Users, Subscriptions } from '../../app/models/server';
 import { settings } from '../../app/settings/server';
 import * as Mailer from '../../app/mailer';
-import { IUser } from '../../definition/IUser';
 
 const sendResetNotitification = function (uid: string): void {
 	const user: IUser = Users.findOneById(uid, {});
@@ -43,10 +43,14 @@ const sendResetNotitification = function (uid: string): void {
 					html,
 				} as any);
 			} catch (error) {
-				throw new Meteor.Error('error-email-send-failed', `Error trying to send email: ${error.message}`, {
-					function: 'resetUserE2EEncriptionKey',
-					message: error.message,
-				});
+				throw new Meteor.Error(
+					'error-email-send-failed',
+					`Error trying to send email: ${error instanceof Error ? error.message : String(error)}`,
+					{
+						function: 'resetUserE2EEncriptionKey',
+						message: error instanceof Error ? error.message : String(error),
+					},
+				);
 			}
 		});
 	}

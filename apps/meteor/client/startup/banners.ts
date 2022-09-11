@@ -1,16 +1,14 @@
+import { BannerPlatform } from '@rocket.chat/core-typings';
+import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 
 import { Notifications } from '../../app/notifications/client';
 import { APIClient } from '../../app/utils/client';
-import { IBanner, BannerPlatform } from '../../definition/IBanner';
-import { Serialized } from '../../definition/Serialized';
 import * as banners from '../lib/banners';
 
 const fetchInitialBanners = async (): Promise<void> => {
-	const response: Serialized<{
-		banners: IBanner[];
-	}> = await APIClient.get('v1/banners', {
+	const response = await APIClient.get('/v1/banners', {
 		platform: BannerPlatform.Web,
 	});
 
@@ -23,9 +21,7 @@ const fetchInitialBanners = async (): Promise<void> => {
 };
 
 const handleBanner = async (event: { bannerId: string }): Promise<void> => {
-	const response: Serialized<{
-		banners: IBanner[];
-	}> = await APIClient.get(`v1/banners/${event.bannerId}`, {
+	const response = await APIClient.get(`/v1/banners/${event.bannerId}`, {
 		platform: BannerPlatform.Web,
 	});
 
@@ -59,6 +55,16 @@ Meteor.startup(() => {
 		unwatchBanners?.();
 
 		if (!Meteor.userId()) {
+			return;
+		}
+
+		if (Tracker.nonreactive(() => FlowRouter.getRouteName()) === 'setup-wizard') {
+			Tracker.autorun((c) => {
+				if (FlowRouter.getRouteName() !== 'setup-wizard') {
+					unwatchBanners = Tracker.nonreactive(watchBanners);
+					c.stop();
+				}
+			});
 			return;
 		}
 

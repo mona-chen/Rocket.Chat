@@ -2,17 +2,23 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import _ from 'underscore';
 import { ObjectId } from 'mongodb';
+import type {
+	IImportUser,
+	IImportMessage,
+	IImportMessageReaction,
+	IImportChannel,
+	IImportUserRecord,
+	IImportChannelRecord,
+	IImportMessageRecord,
+	IUser,
+	IUserEmail,
+} from '@rocket.chat/core-typings';
+import { ImportData as ImportDataRaw } from '@rocket.chat/models';
 
-import { ImportData as ImportDataRaw } from '../../../models/server/raw';
-import { IImportUser } from '../../../../definition/IImportUser';
-import { IImportMessage, IImportMessageReaction } from '../../../../definition/IImportMessage';
-import { IImportChannel } from '../../../../definition/IImportChannel';
-import { IConversionCallbacks } from '../definitions/IConversionCallbacks';
-import { IImportUserRecord, IImportChannelRecord, IImportMessageRecord } from '../../../../definition/IImportRecord';
+import type { IConversionCallbacks } from '../definitions/IConversionCallbacks';
 import { Users, Rooms, Subscriptions, ImportData } from '../../../models/server';
 import { generateUsernameSuggestion, insertMessage, saveUserIdentity, addUserToDefaultChannels } from '../../../lib/server';
 import { setUserActiveStatus } from '../../../lib/server/functions/setUserActiveStatus';
-import { IUser, IUserEmail } from '../../../../definition/IUser';
 import type { Logger } from '../../../../server/lib/logger/Logger';
 
 type IRoom = Record<string, any>;
@@ -277,7 +283,6 @@ export class ImportDataConverter {
 			: Accounts.createUser({
 					username: userData.username,
 					password,
-					// @ts-ignore
 					joinDefaultChannelsSilenced: true,
 			  });
 
@@ -361,7 +366,7 @@ export class ImportDataConverter {
 				}
 			} catch (e) {
 				this._logger.error(e);
-				this.saveError(_id, e);
+				this.saveError(_id, e instanceof Error ? e : new Error(String(e)));
 			}
 		});
 	}
@@ -616,7 +621,7 @@ export class ImportDataConverter {
 					afterImportFn(data, 'message', true);
 				}
 			} catch (e) {
-				this.saveError(_id, e);
+				this.saveError(_id, e instanceof Error ? e : new Error(String(e)));
 			}
 		});
 
@@ -926,7 +931,7 @@ export class ImportDataConverter {
 					afterImportFn(data, 'channel', !existingRoom);
 				}
 			} catch (e) {
-				this.saveError(_id, e);
+				this.saveError(_id, e instanceof Error ? e : new Error(String(e)));
 			}
 		});
 	}

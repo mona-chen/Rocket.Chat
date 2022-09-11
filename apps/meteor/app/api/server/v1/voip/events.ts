@@ -1,14 +1,14 @@
 import { Match, check } from 'meteor/check';
+import { VoipClientEvents } from '@rocket.chat/core-typings';
+import { VoipRoom } from '@rocket.chat/models';
 
 import { API } from '../../api';
 import { LivechatVoip } from '../../../../../server/sdk';
 import { canAccessRoom } from '../../../../authorization/server';
-import { VoipRoom } from '../../../../models/server/raw';
-import { VoipClientEvents } from '../../../../../definition/voip/VoipClientEvents';
 
 API.v1.addRoute(
 	'voip/events',
-	{ authRequired: true },
+	{ authRequired: true, permissionsRequired: ['view-l-room'] },
 	{
 		async post() {
 			check(this.requestParams(), {

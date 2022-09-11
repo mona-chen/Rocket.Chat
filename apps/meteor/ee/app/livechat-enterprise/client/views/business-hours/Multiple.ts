@@ -1,5 +1,7 @@
-import { IBusinessHourBehavior } from '../../../../../../app/livechat/client/views/app/business-hours/IBusinessHourBehavior';
-import { ILivechatBusinessHour, LivechatBusinessHourTypes } from '../../../../../../definition/ILivechatBusinessHour';
+import type { ILivechatBusinessHour } from '@rocket.chat/core-typings';
+import { LivechatBusinessHourTypes } from '@rocket.chat/core-typings';
+
+import type { IBusinessHourBehavior } from '../../../../../../app/livechat/client/views/app/business-hours/IBusinessHourBehavior';
 
 export class MultipleBusinessHoursBehavior implements IBusinessHourBehavior {
 	getView(): string {

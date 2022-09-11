@@ -1,25 +1,27 @@
+import type { IOmnichannelRoom } from '@rocket.chat/core-typings';
 import { useMutableCallback } from '@rocket.chat/fuselage-hooks';
-import { FlowRouter } from 'meteor/kadira:flow-router';
+import {
+	useSetModal,
+	useToastMessageDispatch,
+	useUserId,
+	useSetting,
+	usePermission,
+	useRole,
+	useEndpoint,
+	useMethod,
+	useTranslation,
+	useRoute,
+} from '@rocket.chat/ui-contexts';
 import { Session } from 'meteor/session';
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { RoomManager } from '../../../../../../../app/ui-utils/client';
-import { IOmnichannelRoom } from '../../../../../../../definition/IRoom';
 import PlaceChatOnHoldModal from '../../../../../../../ee/app/livechat-enterprise/client/components/modals/PlaceChatOnHoldModal';
 import CloseChatModal from '../../../../../../components/Omnichannel/modals/CloseChatModal';
 import CloseChatModalData from '../../../../../../components/Omnichannel/modals/CloseChatModalData';
 import ForwardChatModal from '../../../../../../components/Omnichannel/modals/ForwardChatModal';
 import ReturnChatQueueModal from '../../../../../../components/Omnichannel/modals/ReturnChatQueueModal';
 import TranscriptModal from '../../../../../../components/Omnichannel/modals/TranscriptModal';
-import { usePermission, useRole } from '../../../../../../contexts/AuthorizationContext';
-import { useSetModal } from '../../../../../../contexts/ModalContext';
-import { useOmnichannelRouteConfig } from '../../../../../../contexts/OmnichannelContext';
-import { useEndpoint, useMethod } from '../../../../../../contexts/ServerContext';
-import { useSetting } from '../../../../../../contexts/SettingsContext';
-import { useToastMessageDispatch } from '../../../../../../contexts/ToastMessagesContext';
-import { useTranslation } from '../../../../../../contexts/TranslationContext';
-import { useUserId } from '../../../../../../contexts/UserContext';
-import { handleError } from '../../../../../../lib/utils/handleError';
+import { useOmnichannelRouteConfig } from '../../../../../../hooks/omnichannel/useOmnichannelRouteConfig';
 import { QuickActionsActionConfig, QuickActionsEnum } from '../../../../lib/QuickActions';
 import { useQuickActionsContext } from '../../../../lib/QuickActions/QuickActionsContext';
 
@@ -31,6 +33,7 @@ export const useQuickActions = (
 	getAction: (id: string) => void;
 } => {
 	const setModal = useSetModal();
+	const route = useRoute('home');
 
 	const t = useTranslation();
 	const dispatchToastMessage = useToastMessageDispatch();
@@ -44,7 +47,7 @@ export const useQuickActions = (
 	const uid = useUserId();
 	const roomLastMessage = room.lastMessage;
 
-	const getVisitorInfo = useEndpoint('GET', 'livechat/visitors.info');
+	const getVisitorInfo = useEndpoint('GET', '/v1/livechat/visitors.info');
 
 	const getVisitorEmail = useMutableCallback(async () => {
 		if (!visitorRoomId) {
@@ -80,11 +83,11 @@ export const useQuickActions = (
 			await methodReturn(rid);
 			closeModal();
 			Session.set('openedRoom', null);
-			FlowRouter.go('/home');
-		} catch (error: any) {
-			handleError(error);
+			route.push();
+		} catch (error) {
+			dispatchToastMessage({ type: 'error', message: error });
 		}
-	}, [closeModal, methodReturn, rid]);
+	}, [closeModal, dispatchToastMessage, methodReturn, rid, route]);
 
 	const requestTranscript = useMethod('livechat:requestTranscript');
 
@@ -93,13 +96,12 @@ export const useQuickActions = (
 			try {
 				await requestTranscript(rid, email, subject);
 				closeModal();
-				RoomManager.close(`l${rid}`);
 				dispatchToastMessage({
 					type: 'success',
 					message: t('Livechat_transcript_has_been_requested'),
 				});
-			} catch (error: any) {
-				handleError(error);
+			} catch (error) {
+				dispatchToastMessage({ type: 'error', message: error });
 			}
 		},
 		[closeModal, dispatchToastMessage, requestTranscript, rid, t],
@@ -112,11 +114,11 @@ export const useQuickActions = (
 			try {
 				await sendTranscript(token, rid, email, subject);
 				closeModal();
-			} catch (error: any) {
-				handleError(error);
+			} catch (error) {
+				dispatchToastMessage({ type: 'error', message: error });
 			}
 		},
-		[closeModal, rid, sendTranscript],
+		[closeModal, dispatchToastMessage, rid, sendTranscript],
 	);
 
 	const discardTranscript = useMethod('livechat:discardTranscript');
@@ -129,12 +131,12 @@ export const useQuickActions = (
 				message: t('Livechat_transcript_request_has_been_canceled'),
 			});
 			closeModal();
-		} catch (error: any) {
-			handleError(error);
+		} catch (error) {
+			dispatchToastMessage({ type: 'error', message: error });
 		}
 	}, [closeModal, discardTranscript, dispatchToastMessage, rid, t]);
 
-	const forwardChat = useMethod('livechat:transfer');
+	const forwardChat = useEndpoint('POST', '/v1/livechat/room.forward');
 
 	const handleForwardChat = useCallback(
 		async (departmentId?: string, userId?: string, comment?: string) => {
@@ -166,39 +168,39 @@ export const useQuickActions = (
 					throw new Error(departmentId ? t('error-no-agents-online-in-department') : t('error-forwarding-chat'));
 				}
 				dispatchToastMessage({ type: 'success', message: t('Transferred') });
-				FlowRouter.go('/');
+				route.push();
 				closeModal();
-			} catch (error: any) {
-				handleError(error);
+			} catch (error) {
+				dispatchToastMessage({ type: 'error', message: error });
 			}
 		},
-		[closeModal, dispatchToastMessage, forwardChat, rid, t],
+		[closeModal, dispatchToastMessage, forwardChat, rid, route, t],
 	);
 
 	const closeChat = useMethod('livechat:closeRoom');
 
 	const handleClose = useCallback(
-		async (comment: string, tags: string[]) => {
+		async (comment?: string, tags?: string[]) => {
 			try {
 				await closeChat(rid, comment, { clientAction: true, tags });
 				closeModal();
 				dispatchToastMessage({ type: 'success', message: t('Chat_closed_successfully') });
-			} catch (error: any) {
-				handleError(error);
+			} catch (error) {
+				dispatchToastMessage({ type: 'error', message: error });
 			}
 		},
 		[closeChat, closeModal, dispatchToastMessage, rid, t],
 	);
 
-	const onHoldChat = useEndpoint('POST', 'livechat/room.onHold');
+	const onHoldChat = useEndpoint('POST', '/v1/livechat/room.onHold');
 
 	const handleOnHoldChat = useCallback(async () => {
 		try {
 			await onHoldChat({ roomId: rid });
 			closeModal();
 			dispatchToastMessage({ type: 'success', message: t('Chat_On_Hold_Successfully') });
-		} catch (error: any) {
-			handleError(error);
+		} catch (error) {
+			dispatchToastMessage({ type: 'error', message: error });
 		}
 	}, [onHoldChat, rid, closeModal, dispatchToastMessage, t]);
 

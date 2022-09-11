@@ -29,14 +29,14 @@
  *    have same actionid, which is received by this class as a successful execution of a command in actionResultCallback.
  */
 import _ from 'underscore';
-import { Db } from 'mongodb';
+import type { Db } from 'mongodb';
+import { EndpointState } from '@rocket.chat/core-typings';
+import type { IVoipConnectorResult, IExtensionDetails } from '@rocket.chat/core-typings';
 
 import { Command, CommandType } from '../Command';
 import { Logger } from '../../../../../lib/logger/Logger';
 import { Commands } from '../Commands';
 import { CallbackContext } from './CallbackContext';
-import { EndpointState, IExtensionDetails } from '../../../../../../definition/IVoipExtension';
-import { IVoipConnectorResult } from '../../../../../../definition/IVoipConnectorResult';
 
 export class PJSIPEndpoint extends Command {
 	private logger: Logger;

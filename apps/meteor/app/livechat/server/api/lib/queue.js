@@ -1,12 +1,7 @@
-import { hasPermissionAsync } from '../../../../authorization/server/functions/hasPermission';
-import { LivechatRooms } from '../../../../models/server/raw';
+import { LivechatRooms } from '@rocket.chat/models';
 
-export async function findQueueMetrics({ userId, agentId, includeOfflineAgents, departmentId, pagination: { offset, count, sort } }) {
-	if (!(await hasPermissionAsync(userId, 'view-l-room'))) {
-		throw new Error('error-not-authorized');
-	}
-
-	const queue = await LivechatRooms.getQueueMetrics({
+export async function findQueueMetrics({ agentId, includeOfflineAgents, departmentId, pagination: { offset, count, sort } }) {
+	const result = await LivechatRooms.getQueueMetrics({
 		departmentId,
 		agentId,
 		includeOfflineAgents,
@@ -16,7 +11,11 @@ export async function findQueueMetrics({ userId, agentId, includeOfflineAgents, 
 			count,
 		},
 	});
-	const total = (await LivechatRooms.getQueueMetrics({ departmentId, agentId, includeOfflineAgents })).length;
+
+	const {
+		sortedResults: queue,
+		totalCount: [{ total } = { total: 0 }],
+	} = result[0];
 
 	return {
 		queue,

@@ -1,7 +1,7 @@
-import { Integrations } from '../../../models/server/raw';
+import type { IIntegration, IUser } from '@rocket.chat/core-typings';
+import { Integrations } from '@rocket.chat/models';
+
 import { hasPermissionAsync } from '../../../authorization/server/functions/hasPermission';
-import { IIntegration } from '../../../../definition/IIntegration';
-import { IUser } from '../../../../definition/IUser';
 
 const hasIntegrationsPermission = async (userId: string, integration: IIntegration): Promise<boolean> => {
 	const type = integration.type === 'webhook-incoming' ? 'incoming' : 'outgoing';
@@ -24,7 +24,7 @@ export const findOneIntegration = async ({
 }: {
 	userId: string;
 	integrationId: string;
-	createdBy: IUser;
+	createdBy?: IUser['_id'];
 }): Promise<IIntegration> => {
 	const integration = await Integrations.findOneByIdAndCreatedByIfExists({
 		_id: integrationId,

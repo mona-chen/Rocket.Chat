@@ -1,25 +1,26 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
-
-import { Users } from '../../../models/server';
-import { API } from '../api';
-import { getUsersInRole, hasRole } from '../../../authorization/server';
-import { settings } from '../../../settings/server/index';
-import { api } from '../../../../server/sdk/api';
-import { Roles } from '../../../models/server/raw';
-import { apiDeprecationLogger } from '../../../lib/server/lib/deprecationWarningLogger';
-import { hasAnyRoleAsync } from '../../../authorization/server/functions/hasRole';
 import {
 	isRoleAddUserToRoleProps,
 	isRoleCreateProps,
 	isRoleDeleteProps,
 	isRoleRemoveUserFromRoleProps,
 	isRoleUpdateProps,
-} from '../../../../definition/rest/v1/roles';
+} from '@rocket.chat/rest-typings';
+import type { IRole } from '@rocket.chat/core-typings';
+import { Roles } from '@rocket.chat/models';
+
+import { Users } from '../../../models/server';
+import { API } from '../api';
+import { hasRole } from '../../../authorization/server';
+import { getUsersInRolePaginated } from '../../../authorization/server/functions/getUsersInRole';
+import { settings } from '../../../settings/server/index';
+import { api } from '../../../../server/sdk/api';
+import { apiDeprecationLogger } from '../../../lib/server/lib/deprecationWarningLogger';
+import { hasAnyRoleAsync } from '../../../authorization/server/functions/hasRole';
 import { hasPermissionAsync } from '../../../authorization/server/functions/hasPermission';
 import { updateRole } from '../../../../server/lib/roles/updateRole';
 import { insertRole } from '../../../../server/lib/roles/insertRole';
-import type { IRole } from '../../../../definition/IRole';
 
 API.v1.addRoute(
 	'roles.list',
@@ -150,6 +151,8 @@ API.v1.addRoute(
 				username: 1,
 				emails: 1,
 				avatarETag: 1,
+				createdAt: 1,
+				_updatedAt: 1,
 			};
 
 			if (!role) {
@@ -173,14 +176,16 @@ API.v1.addRoute(
 				apiDeprecationLogger.warn(`Querying roles by name is deprecated and will be removed on the next major release of Rocket.Chat`);
 			}
 
-			const users = await getUsersInRole(roleData._id, roomId, {
+			const { cursor, totalCount } = await getUsersInRolePaginated(roleData._id, roomId, {
 				limit: count as number,
 				sort: { username: 1 },
 				skip: offset as number,
 				projection,
 			});
 
-			return API.v1.success({ users: await users.toArray(), total: await users.count() });
+			const [users, total] = await Promise.all([cursor.toArray(), totalCount]);
+
+			return API.v1.success({ users, total });
 		},
 	},
 );
