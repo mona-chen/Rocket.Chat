@@ -5,6 +5,7 @@ import React, { memo } from 'react';
 
 import SeatsCard from '../../../../ee/client/views/admin/info/SeatsCard';
 import Page from '../../../components/Page';
+import { useIsEnterprise } from '../../../hooks/useIsEnterprise';
 import DeploymentCard from './DeploymentCard';
 import FederationCard from './FederationCard';
 import LicenseCard from './LicenseCard';
@@ -29,15 +30,17 @@ const InformationPage = memo(function InformationPage({
 }: InformationPageProps) {
 	const t = useTranslation();
 
+	const { data } = useIsEnterprise();
+
 	if (!info) {
 		return null;
 	}
 
-	const usingMultipleInstances = statistics?.instanceCount > 1;
-	const alertOplogForMultipleInstances = usingMultipleInstances && !statistics.oplogEnabled;
+	const warningMultipleInstances = !data?.isEnterprise && !statistics?.msEnabled && statistics?.instanceCount > 1;
+	const alertOplogForMultipleInstances = warningMultipleInstances && !statistics.oplogEnabled;
 
 	return (
-		<Page data-qa='admin-info'>
+		<Page data-qa='admin-info' bg='tint'>
 			<Page.Header title={t('Info')}>
 				{canViewStatistics && (
 					<ButtonGroup>
@@ -52,8 +55,10 @@ const InformationPage = memo(function InformationPage({
 			</Page.Header>
 
 			<Page.ScrollableContentWithShadow>
-				<Box marginBlock='none' marginInline='auto' width='full'>
-					{usingMultipleInstances && <Callout type='danger' title={t('Multiple_monolith_instances_alert')} marginBlockEnd='x16'></Callout>}
+				<Box marginBlock='none' marginInline='auto' width='full' color='default'>
+					{warningMultipleInstances && (
+						<Callout type='warning' title={t('Multiple_monolith_instances_alert')} marginBlockEnd='x16'></Callout>
+					)}
 					{alertOplogForMultipleInstances && (
 						<Callout
 							type='danger'

@@ -1,65 +1,62 @@
-import type { IRoom } from '@rocket.chat/core-typings';
-import { IMessage } from '@rocket.chat/core-typings';
-import { Mongo } from 'meteor/mongo';
+import type { IRoom, IMessage, MessageTypesValues } from '@rocket.chat/core-typings';
+import { useStableArray } from '@rocket.chat/fuselage-hooks';
+import { useSetting, useUserSubscription } from '@rocket.chat/ui-contexts';
+import type { Mongo } from 'meteor/mongo';
 import { useCallback, useMemo } from 'react';
 
-import { ChatMessage } from '../../../../../app/models/client';
-// import { useSetting } from '@rocket.chat/ui-contexts'
+import { Messages } from '../../../../../app/models/client';
 import { useReactiveValue } from '../../../../hooks/useReactiveValue';
+import type { MessageWithMdEnforced } from '../../../../lib/parseMessageTextToAstMarkdown';
+import { parseMessageTextToAstMarkdown, removePossibleNullMessageValues } from '../../../../lib/parseMessageTextToAstMarkdown';
+import { useAutoTranslate } from './useAutoTranslate';
+import { useKatex } from './useKatex';
 
-const options = {
-	sort: {
-		ts: 1,
-	},
-};
+export const useMessages = ({ rid }: { rid: IRoom['_id'] }): MessageWithMdEnforced[] => {
+	const { katexEnabled, katexDollarSyntaxEnabled, katexParenthesisSyntaxEnabled } = useKatex();
+	const subscription = useUserSubscription(rid);
 
-const isNotNullOrUndefined = (value: unknown): boolean => value !== null && value !== undefined;
+	const autoTranslateOptions = useAutoTranslate(subscription);
+	const showColors = Boolean(useSetting('HexColorPreview_Enabled'));
+	const hideSysMes = useSetting<MessageTypesValues[]>('Hide_System_Messages');
 
-// In a previous version of the app, some values were being set to null.
-// This is a workaround to remove those null values.
-// A migration script should be created to remove this code.
-const removePossibleNullValues = ({
-	editedBy,
-	editedAt,
-	emoji,
-	avatar,
-	alias,
-	customFields,
-	groupable,
-	attachments,
-	reactions,
-	...message
-}: any): IMessage => ({
-	...message,
-	...(isNotNullOrUndefined(editedBy) && { editedBy }),
-	...(isNotNullOrUndefined(editedAt) && { editedAt }),
-	...(isNotNullOrUndefined(emoji) && { emoji }),
-	...(isNotNullOrUndefined(avatar) && { avatar }),
-	...(isNotNullOrUndefined(alias) && { alias }),
-	...(isNotNullOrUndefined(customFields) && { customFields }),
-	...(isNotNullOrUndefined(groupable) && { groupable }),
-	...(isNotNullOrUndefined(attachments) && { attachments }),
-	...(isNotNullOrUndefined(reactions) && { reactions }),
-});
+	const hideSysMessages = useStableArray(Array.isArray(hideSysMes) ? hideSysMes : []);
 
-export const useMessages = ({ rid }: { rid: IRoom['_id'] }): IMessage[] => {
-	// const hideSettings = !!useSetting('Hide_System_Messages');
+	const normalizeMessage = useMemo(() => {
+		const parseOptions = {
+			colors: showColors,
+			emoticons: true,
+			...(katexEnabled && {
+				katex: {
+					dollarSyntax: katexDollarSyntaxEnabled,
+					parenthesisSyntax: katexParenthesisSyntaxEnabled,
+				},
+			}),
+		};
+		return (message: IMessage): MessageWithMdEnforced =>
+			parseMessageTextToAstMarkdown(removePossibleNullMessageValues(message), parseOptions, autoTranslateOptions);
+	}, [showColors, katexEnabled, katexDollarSyntaxEnabled, katexParenthesisSyntaxEnabled, autoTranslateOptions]);
 
-	// const room = Rooms.findOne(rid, { fields: { sysMes: 1 } });
-	// const settingValues = Array.isArray(room.sysMes) ? room.sysMes : hideSettings || [];
-	// const hideMessagesOfType = new Set(settingValues.reduce((array, value) => [...array, ...value === 'mute_unmute' ? ['user-muted', 'user-unmuted'] : [value]], []));
 	const query: Mongo.Query<IMessage> = useMemo(
 		() => ({
 			rid,
 			_hidden: { $ne: true },
+			t: { $nin: hideSysMessages },
 			$or: [{ tmid: { $exists: false } }, { tshow: { $eq: true } }],
 		}),
-		[rid],
+		[rid, hideSysMessages],
 	);
 
-	// if (hideMessagesOfType.size) {
-	// 	query.t = { $nin: Array.from(hideMessagesOfType.values()) };
-	// }
-
-	return useReactiveValue<IMessage[]>(useCallback(() => ChatMessage.find(query, options).fetch().map(removePossibleNullValues), [query]));
+	return useReactiveValue<MessageWithMdEnforced[]>(
+		useCallback(
+			() =>
+				Messages.find(query, {
+					sort: {
+						ts: 1,
+					},
+				})
+					.fetch()
+					.map(normalizeMessage),
+			[query, normalizeMessage],
+		),
+	);
 };

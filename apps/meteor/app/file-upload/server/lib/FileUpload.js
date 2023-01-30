@@ -292,6 +292,10 @@ export const FileUpload = {
 		return result;
 	},
 
+	async extractMetadata(file) {
+		return sharp(FileUpload.getBufferSync(file)).metadata();
+	},
+
 	createImageThumbnail(file) {
 		if (!settings.get('Message_Attachments_Thumbnails_Enabled')) {
 			return;
@@ -323,6 +327,8 @@ export const FileUpload = {
 			name: `thumb-${file.name}`,
 			size: buffer.length,
 			type: file.type,
+			originalFileId: file._id,
+			typeGroup: 'thumb',
 			rid,
 			userId,
 		};
@@ -331,7 +337,7 @@ export const FileUpload = {
 	},
 
 	uploadsOnValidate(file) {
-		if (!/^image\/((x-windows-)?bmp|p?jpeg|png|gif)$/.test(file.type)) {
+		if (!/^image\/((x-windows-)?bmp|p?jpeg|png|gif|webp)$/.test(file.type)) {
 			return;
 		}
 
